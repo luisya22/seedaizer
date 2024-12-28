@@ -10,9 +10,10 @@ type Schema struct {
 // TODO: Convert table and column slices to maps so I can search quickly by name
 
 type Table struct {
-	Name        string                `json:"name"`
-	Columns     map[string]Column     `json:"columns"`
-	ForeignKeys map[string]ForeignKey `json:"foreignKeys"`
+	Name        string                  `json:"name"`
+	Columns     map[string]Column       `json:"columns"`
+	ForeignKeys map[string]ForeignKey   `json:"foreignKeys"`
+	ChildTables map[string][]ForeignKey `json:"childTables"`
 }
 
 type Column struct {

@@ -27,7 +27,7 @@ to quickly create a Cobra application.`,
 
 		databaseUrl := viper.GetString("database.url")
 		if databaseUrl == "" {
-			fmt.Println("No database URL found in the configuration.")
+			log.Fatal("No database URL found in the configuration.")
 		} else {
 			fmt.Println("Connecting to database")
 		}
@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 
 		err := dbscanner.ScanToJson(config)
 		if err != nil {
-			log.Fatal(err.Error())
+			log.Fatal(err)
 		}
 	},
 }

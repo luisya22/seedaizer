@@ -26,6 +26,7 @@ func connectDb(config Config) (*sqlx.DB, error) {
 	return db, nil
 }
 
+// scan scans the db and returns a *models.schema. It fetches tables, columns and foreign key constraints.
 func scan(config Config) (*models.Schema, error) {
 	fmt.Println("Scanning")
 	db, err := connectDb(config)
@@ -64,6 +65,8 @@ func scan(config Config) (*models.Schema, error) {
 			return nil, fmt.Errorf("error scanning tables result: %w", err)
 		}
 
+		fmt.Println("This is the table name", table.Name, table)
+
 		// FETCH COLUMNS
 
 		query := fmt.Sprintf("DESCRIBE `%s`", table.Name)
@@ -86,47 +89,53 @@ func scan(config Config) (*models.Schema, error) {
 			table.Columns[col.Field] = col
 		}
 
-		// FETCH FOREIGN KEYS
-		query = `SELECT table_name, column_name, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage WHERE referenced_table_name = ? and table_schema = ?`
-
-		fkRows, err := db.QueryxContext(ctx, query, table.Name, dbName)
-		if err != nil {
-			return nil, fmt.Errorf("error fetching foreignkeys: %w", err)
-		}
-
-		table.ForeignKeys = map[string]models.ForeignKey{}
-
-		for fkRows.Next() {
-			var fk models.ForeignKey
-
-			err := fkRows.StructScan(&fk)
-			if err != nil {
-				return nil, fmt.Errorf("error scanning columns: %w", err)
-			}
-
-			table.ForeignKeys[fk.ColumnName] = fk
-		}
+		table.ForeignKeys = make(map[string]models.ForeignKey)
+		table.ChildTables = make(map[string][]models.ForeignKey)
 
 		schema.Tables[table.Name] = table
+	}
+
+	// FETCH FOREIGN KEYS
+	query := `SELECT table_name, column_name, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage WHERE table_schema = ? and referenced_table_name is not null`
+
+	fkRows, err := db.QueryxContext(ctx, query, dbName)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching foreignkeys: %w", err)
+	}
+
+	for fkRows.Next() {
+		var fk models.ForeignKey
+
+		err := fkRows.StructScan(&fk)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning foreign keys: %w", err)
+		}
+
+		if table, ok := schema.Tables[fk.TableName]; ok {
+			table.ForeignKeys[fk.ColumnName] = fk
+			schema.Tables[fk.TableName] = table
+		}
+
+		if table, ok := schema.Tables[fk.ReferencedTableName]; ok {
+			table.ChildTables[fk.TableName] = append(table.ChildTables[fk.TableName], fk)
+			schema.Tables[fk.ReferencedTableName] = table
+		}
 	}
 
 	return &schema, nil
 }
 
+// ScanToJson uses scan to get the db schema and saves it directly to a json file
 func ScanToJson(config Config) error {
 	s, err := scan(config)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(s)
-
 	jsonData, err := json.MarshalIndent(*s, "", "  ")
 	if err != nil {
 		return fmt.Errorf("error mapping json: %v", err)
 	}
-
-	fmt.Println(string(jsonData))
 
 	f, err := os.Create("db.json")
 	if err != nil {
