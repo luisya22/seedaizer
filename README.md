@@ -16,7 +16,7 @@ seedaizer scandb --config ./config.yaml
 
 2. **Generate Data:** Create SQL `INSERT` statements tailored to your database schema.
 ```bash
-seedaizer seedup -q "insert 5 {users} with" -o print
+seedaizer seedup -q "insert 5 {users} with roles" -o print
 ```
 
 3. **Configure:** USe a `config.yaml` file for database connection and other settings.
