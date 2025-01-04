@@ -64,9 +64,6 @@ func scan(config Config) (*models.Schema, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error scanning tables result: %w", err)
 		}
-
-		fmt.Println("This is the table name", table.Name, table)
-
 		// FETCH COLUMNS
 
 		query := fmt.Sprintf("DESCRIBE `%s`", table.Name)

@@ -35,9 +35,14 @@ to quickly create a Cobra application.`,
 			fmt.Println("Connecting to database")
 		}
 
+		openAiKey := viper.GetString("openaikey")
+
+		fmt.Println("OpenAIKey", openAiKey)
+
 		config := seeder.Config{
-			DbUrl:    databaseUrl,
-			FilePath: filePath,
+			DbUrl:     databaseUrl,
+			FilePath:  filePath,
+			OpenAiKey: openAiKey,
 		}
 
 		err := seeder.Seed(config, query)

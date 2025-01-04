@@ -10,8 +10,9 @@ import (
 )
 
 type Config struct {
-	DbUrl    string
-	FilePath string
+	DbUrl     string
+	FilePath  string
+	OpenAiKey string
 }
 
 func getSchema(filePath string) (*models.Schema, error) {
@@ -132,30 +133,41 @@ func Seed(config Config, query string) error {
 
 	tables := findReferencedAndChildTables(schema, queryTables)
 
-	data, err := json.MarshalIndent(tables, "", "\t")
+	tablesJson, err := json.MarshalIndent(tables, "", "\t")
 	if err != nil {
 		return err
 	}
 
-	f, err := os.Create("result.json")
+	userPrompt, err := buildPrompt(query, string(tablesJson))
 	if err != nil {
 		return err
 	}
 
-	_, err = f.WriteString(string(data))
+	openaiService := NewOpenAIService(config.OpenAiKey)
+
+	response, err := openaiService.queryllm(systemPrompt, userPrompt)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(response)
 
 	return nil
 }
 
+func buildPrompt(query string, tablesJson string) (string, error) {
+
+	p := fmt.Sprintf(seederPrompt, query, tablesJson, "")
+
+	return p, nil
+}
+
 /**
 TODO:
-	queryllm - will query llm receiving a string
+	(DONE) queryllm - will query llm receiving a string
 	(DONE) get tables - return a list of table objects to add to the prompt
 	(DONE) identify tables - get table names from the prompt and the childrens
-	buildprompt - build prompt with tables and user instructions
+	(DONE) buildprompt - build prompt with tables and user instructions
 	seed - main interface it will call everything and either print results, save to .sql, or execute directly
 		It'll need user_query, result_type, filepath
 **/
