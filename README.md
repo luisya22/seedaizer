@@ -27,3 +27,13 @@ openaikey: "your_openai_api_key"
 ```
 
 ## Coming Soon / TODO
+- **Web Interface:** A browser-based UI for managing database seeding.
+- **Enhanced AI Prompts:** Support for complex scenarios and custom data patterns.
+- **Direct Database Execution:** Execute generated SQL statements directly against the database.
+- **Expanded Database Support:** Additional dasstabase engines such as PostgreSQL, SQLite and SQL Server.
+
+## Contribution
+Contributions are welcome! Feel free to fork the respository, create feature branches, and submit pull requests.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/luisya22/seedaizer/blob/main/LICENSE) file for details.
