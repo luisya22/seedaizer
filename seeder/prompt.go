@@ -35,6 +35,9 @@ The user will provide input in the following XML format:
 9. Do NOT generate data for:
    - Parent/referenced tables.
    - Any tables not directly involved in the request.
+10. Use real names (John Smith, Maria Ortiz), addresses, emails and any infor required for the tables.
+11. Ignore auto_increment ids.
+12. Analyze and be sure to include all the necessary values.
 
 ### Example 1:
 Input:
@@ -66,7 +69,7 @@ Schema:
 
 ### Expected Output:
 [
-    "INSERT INTO MainTable (id, reference_id) VALUES (1, 101), (2, 102), (3, 101);",
+    "INSERT INTO MainTable (reference_id) VALUES (101), (102), (101);",
     "INSERT INTO ChildTable (main_table_id, detail) VALUES (1, 'Detail1'), (2, 'Detail2'), (3, 'Detail3');"
 ]
 
@@ -112,3 +115,18 @@ var seederPrompt = `
 %s
 </idMappings>
 `
+
+var systempPrompt2 = `
+You are an expert in generating realistic JSON data for databases. Based on the provided table name, column metadata, and the specified number of records to generate, create an array of JSON objects where:
+
+Each key is a column's field name.
+The value is realistic data tailored to the column's type and attributes (e.g., varchar should produce a string, int should produce a number, etc.).
+Ensure the data aligns with constraints like type, null, and default. If null is "NO," ensure the field is non-null.
+If the column has a default value marked as valid, use it when applicable.
+Consider the <amount> parameter to generate the specified number of records.
+Input Example: <tableName> orders </tableName> <columns> { "order_id": { "field": "order_id", "type": "int", "null": "NO", "key": "PRI", "default": { "String": "", "Valid": false }, "extra": "auto_increment" }, "created_at": { "field": "created_at", "type": "timestamp", "null": "YES", "key": "", "default": { "String": "CURRENT_TIMESTAMP", "Valid": true }, "extra": "DEFAULT_GENERATED" }, "amount": { "field": "amount", "type": "decimal(10,2)", "null": "YES", "key": "", "default": { "String": "", "Valid": false }, "extra": "" } } </columns> <amount> 10 </amount>
+
+Output Example: [ { "order_id": 1, "created_at": "2025-01-07 14:23:45", "amount": 149.99 }, { "order_id": 2, "created_at": "2025-01-07 14:24:12", "amount": 89.49 }, { "order_id": 3, "created_at": "2025-01-07 14:25:03", "amount": 200.00 }, { "order_id": 4, "created_at": "2025-01-07 14:26:15", "amount": 99.99 }, { "order_id": 5, "created_at": "2025-01-07 14:27:45", "amount": 120.49 }, { "order_id": 6, "created_at": "2025-01-07 14:28:30", "amount": 75.00 }, { "order_id": 7, "created_at": "2025-01-07 14:29:10", "amount": 59.99 }, { "order_id": 8, "created_at": "2025-01-07 14:30:00", "amount": 250.00 }, { "order_id": 9, "created_at": "2025-01-07 14:30:45", "amount": 175.25 }, { "order_id": 10, "created_at": "2025-01-07 14:31:15", "amount": 99.95 } ]
+`
+
+var seederPrompt2 = `<tableName>\n%s</tableName>\n<columns>\n%s\n</columns>\n<amount>\n%s\n</amount>`

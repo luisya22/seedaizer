@@ -26,7 +26,12 @@ to quickly create a Cobra application.`,
 		fmt.Println("seedup called")
 
 		filePath := "db.json"
-		query := viper.GetString("query")
+		tableName := viper.GetString("table-name")
+		quantity := viper.GetInt("quantity")
+		addChildren := viper.GetBool("add-chilren")
+		skipChildrens := viper.GetString("skip-childrens")
+		batchSize := viper.GetInt("batch-size")
+		outputMode := viper.GetString("output-mode")
 
 		databaseUrl := viper.GetString("database.url")
 		if databaseUrl == "" {
@@ -43,7 +48,16 @@ to quickly create a Cobra application.`,
 			OpenAiKey: openAiKey,
 		}
 
-		err := seeder.Seed(config, query)
+		options := seeder.Options{
+			TableName:     tableName,
+			Quantity:      quantity,
+			AddChildren:   addChildren,
+			SkipChildrens: skipChildrens,
+			BatchSize:     batchSize,
+			OutputMode:    outputMode,
+		}
+
+		err := seeder.Seed(config, options)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,11 +67,19 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(seedupCmd)
 
-	seedupCmd.PersistentFlags().String("query", "", "Query to generate necessary sql commands")
+	seedupCmd.PersistentFlags().StringP("table-name", "t", "", "Name of the main table where data will be inserted.")
+	seedupCmd.PersistentFlags().IntP("quantity", "q", 1, "Number of records to generate.")
+	seedupCmd.PersistentFlags().BoolP("add-children", "c", false, "Include child table data during generation.")
+	seedupCmd.PersistentFlags().StringP("skip-childrens", "s", "", "Comma-separated list of child tables to skip.")
+	seedupCmd.PersistentFlags().IntP("batch-size", "b", 10, "Number of records to generate per batch.")
+	seedupCmd.PersistentFlags().StringP("output-mode", "o", "print", "How to handle output: 'print' to display in terminal, 'json' to save as a file, or 'execute' to apply directly to the database.")
 
-	err := viper.BindPFlag("query", seedupCmd.PersistentFlags().Lookup("query"))
-	if err != nil {
-		log.Fatal("error binding query flag: %w", err)
+	flagsToBind := []string{"table-name", "quantity", "add-children", "skip-childrens", "batch-size", "output-mode"}
+	for _, flag := range flagsToBind {
+		err := viper.BindPFlag(flag, seedupCmd.PersistentFlags().Lookup(flag))
+		if err != nil {
+			log.Fatalf("Error binding %s flag: %v", flag, err)
+		}
 	}
 
 	// Here you will define your flags and configuration settings.
