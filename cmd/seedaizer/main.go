@@ -32,13 +32,9 @@ func main() {
 	fmt.Println(schema)
 }
 
-// TODO: Select databases and send prompt to open ai to generate insert statements.
-// TODO: Execute insert statements
 /**
 Support multiple database engines
 Allow users to configure connection details securely
-
-(DONE) Retrieve metadata like tables, columns, datatypes and relationships (foreign keys)
 
 CLI and web client
 
@@ -48,11 +44,10 @@ one command  should save. Other command should execute the prompt
 set credentials on .env, json or yaml
 select tables via input parameter array
 send data to prompt
-receive data an print it to: stdout, .sql file or execute directly
+receive data and print it to: stdout, .sql file or execute directly
 
 
-Executor:
-how to select tables. Maybe using foreign keys to find childrens and then getting some data from parents e.g users dsata because i need user_id
-build the prompt
-send it to open ai
+Pregenerate a large amount of data. The AI will only map a column
+to a field type.
+
 **/
